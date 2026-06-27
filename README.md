@@ -5,7 +5,9 @@ arm **entirely in the browser**, on a MuJoCo-WASM simulation rendered with
 [`mujoco-react`](https://www.npmjs.com/package/mujoco-react). Task: pick up the
 red cube and place it on the green target.
 
-[Live](https://so101-policy-lab.nmwardlow.workers.dev/?mode=act&run=false&cams=true&cams3=false)
+**▶ [Live demo](https://so101-policy-lab.nmwardlow.workers.dev)** — the 3-cam ACT
+policy running entirely in your browser (first load fetches a ~137 MB ONNX, then
+hit **Run**).
 
 Two policy backends, selectable in the HUD:
 
