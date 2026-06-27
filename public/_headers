@@ -1,0 +1,5 @@
+# Cross-origin isolation → SharedArrayBuffer → threaded WASM (MuJoCo + onnxruntime-web).
+# Cloudflare Pages / Netlify read this file; mirrors the dev headers in vite.config.ts.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

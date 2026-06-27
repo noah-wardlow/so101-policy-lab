@@ -1,0 +1,22 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+count.txt
+.env
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+todos.json
+
+# build artifacts / scratch
+data/
+outputs/
+artifacts/
+__pycache__/
+scripts/_leak.mjs
+*.onnx
+/tmp/
