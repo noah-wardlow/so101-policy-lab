@@ -201,6 +201,7 @@ export function App() {
   const apiRef = useRef<MujocoSimAPI>(null);
   const expertRef = useRef<ExpertHandle | null>(null);
   const recorderRef = useRef<RecorderHandle | null>(null);
+  const episodeBusyRef = useRef(false); // guards the HUD "Run one episode" button
   const sceneConfig = useMemo(() => createSo101SceneConfig(), []);
   const [status, setStatus] = useState('idle');
 
@@ -253,6 +254,11 @@ export function App() {
     setTimeout(() => expertRef.current?.placeCube(x, y), 200);
   };
   const runEpisode = async () => {
+    // Guard against overlapping clicks: a second run while one is in flight spawns a
+    // concurrent control loop (FPS decay + errant swiping). The expert guards this
+    // too; this also stops the reset/placeCube below from disrupting a live run.
+    if (episodeBusyRef.current) return;
+    episodeBusyRef.current = true;
     // Mirror the recording path exactly: reset → place a fresh cube → settle → run.
     // Without the reset+placeCube, a second click would run from wherever the last
     // episode ended (cube on the pad, arm parked) and look like errant "swiping".
@@ -262,10 +268,15 @@ export function App() {
     expertRef.current?.placeCube(x, y);
     setStatus('running episode…');
     await sleep(400); // let the cube settle + FK update before the expert reads it
-    expertRef.current?.runEpisode().then(
-      (r) => setStatus(r.success ? 'episode: success ✓' : 'episode: failed'),
-      (e) => setStatus(`error: ${e}`),
-    );
+    expertRef.current
+      ?.runEpisode()
+      .then(
+        (r) => setStatus(r.success ? 'episode: success ✓' : 'episode: failed'),
+        (e) => setStatus(`error: ${e}`),
+      )
+      .finally(() => {
+        episodeBusyRef.current = false;
+      });
   };
 
   return (

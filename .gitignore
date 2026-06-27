@@ -17,6 +17,7 @@ data/
 outputs/
 artifacts/
 __pycache__/
-scripts/_leak.mjs
+# underscore-prefixed scripts = local scratch/profiling harnesses
+scripts/_*.mjs
 *.onnx
 /tmp/
