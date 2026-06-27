@@ -57,6 +57,8 @@ export function Hud(props: HudProps) {
   const { mode, setMode, running, setRunning, gizmo, setGizmo } = props;
   const isPolicy = POLICY_MODES.includes(mode);
   const [policyStatus, setPolicyStatus] = useState('');
+  // The ~137MB ONNX loads on select; __actStatus reads "loading…" until ready.
+  const policyLoading = isActModel(mode) && /loading/i.test(policyStatus);
 
   // Poll the policy status the runners stash on window.
   useEffect(() => {
@@ -92,7 +94,13 @@ export function Hud(props: HudProps) {
             >
               {running ? '■ Stop Policy' : '▶ Run Policy'}
             </button>
-            <div style={{ color: '#94a3b8', fontSize: 11, minHeight: 14 }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, minHeight: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {policyLoading && (
+                <span
+                  className="animate-spin"
+                  style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', border: '2px solid rgba(148,163,184,0.3)', borderTopColor: '#94a3b8' }}
+                />
+              )}
               {policyStatus || 'idle'}
             </div>
           </>
