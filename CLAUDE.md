@@ -10,10 +10,8 @@ client-side; you can drive the arm three ways and compare them on the same scene
 
 - **teleop** — IK gizmo / keyboard.
 - **expert** — a scripted pick-place controller (also the data generator).
-- **act-a / act-c** — LeRobot **ACT** policies running in-browser via
-  onnxruntime-web (no backend). A = 2-cam (wrist+front), C = 3-cam
-  (wrist+front+side). Same recording, side-cam is the only difference → a clean
-  ablation.
+- **act** — a LeRobot **ACT** policy running in-browser via onnxruntime-web (no
+  backend). 3-cam (wrist+front+side).
 - **molmo** — a fine-tuned **MolmoAct2** VLA served over HTTP on a GPU pod
   (the only mode that needs a URL).
 
@@ -33,8 +31,8 @@ npm run lint
 ```
 
 State lives in the URL (TanStack Router + zod, see `src/router.tsx`):
-`?mode=act-a&run=1&cams=1&cams3=0&molmo=<url>`. `mode` invalid → catches to
-`act-a`. So `localhost:3000/?mode=act-c&run=1` boots straight into a running C.
+`?mode=act&run=1&cams=1&cams3=0&molmo=<url>`. `mode` invalid → catches to
+`act`. So `localhost:3000/?mode=act&run=1` boots straight into a running ACT.
 
 ## Architecture / data flow
 
@@ -47,7 +45,7 @@ App
          │   ├─ useIkController(ikConfig)               5-DOF, pos-weighted
          │   ├─ teleop: IkGizmo + SO101Controller
          │   ├─ ScriptedExpert (always mounted, idle unless episode runs)
-         │   ├─ BrowserActPolicy  (mounted only while mode∈act-* AND run)
+         │   ├─ BrowserActPolicy  (mounted only while mode=act AND run)
          │   ├─ PolicyAutoFinish  (detects place → pauses sim, flips button)
          │   └─ MolmoPolicy       (mounted only while mode=molmo AND run)
          ├─ Recorder (samples frames on the physics clock)
@@ -107,7 +105,7 @@ separately (see "Controls ownership" gotcha). Policies write `ctrl` via
 - `scripts/export_act_to_onnx.py` — checkpoint → `act.onnx` + `policy.json`.
 - `scripts/eval_policy.mjs` — headless eval; runs N episodes, scores whether the
   cube was actually moved onto the target. `node scripts/eval_policy.mjs --mode
-  act-a --url http://localhost:3000/ --episodes 8`.
+  act --url http://localhost:3000/ --episodes 8`.
 - `scripts/pod_molmo_ft.sh`, `server/molmo_ft_server.py` — Molmo LoRA fine-tune +
   inference server (GPU pod).
 - `scripts/runpod_*.py` — pod lifecycle helpers.
@@ -118,15 +116,13 @@ source. Source reads endpoints from env (`VITE_MODEL_BASE`,
 
 ## End-to-end workflow (data → policy → verify)
 
-1. **Record** (one 3-cam recording feeds both A and C):
-   `node scripts/record.mjs` → raw frames.
-2. **Build datasets**: `build_lerobot_dataset.py --cameras wrist,front` (A) and
-   `--cameras wrist,front,side` (C) from the same raw recording.
-3. **Train** ACT per dataset (`train_act.sh`), **export** to ONNX
-   (`export_act_to_onnx.py`). On the pod this is chained in `/workspace/run_all.sh`
-   (ACT-A → ACT-C → Molmo FT, sequential).
+1. **Record** (3-cam recording): `node scripts/record.mjs` → raw frames.
+2. **Build dataset**: `build_lerobot_dataset.py --cameras wrist,front,side`.
+3. **Train** ACT (`train_act.sh`), **export** to ONNX (`export_act_to_onnx.py`).
+   On the pod this is chained in `/workspace/run_all.sh` (ACT → Molmo FT,
+   sequential).
 4. **Deploy** to the app: copy `act.onnx` + `policy.json` into
-   `public/models/<id>/`. In prod, host the ONNX on an object store and set
+   `public/models/act/`. In prod, host the ONNX on an object store and set
    `VITE_MODEL_BASE` (Cloudflare Pages' 25 MiB/file limit blocks the ~137 MB ONNX).
 5. **Verify**: `npm run dev` then `eval_policy.mjs`. A clean ACT model places the
    cube within ~3–5 cm of the target.

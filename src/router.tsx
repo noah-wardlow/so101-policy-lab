@@ -23,10 +23,10 @@ const flag = (dflt: boolean) =>
 export const searchSchema = z.object({
   // Default to the in-browser ACT model — the app runs as a static site with no
   // backend (policy + sim are entirely client-side).
-  mode: z.enum(['teleop', 'expert', 'act-a', 'act-c', 'molmo']).catch('act-a'),
+  mode: z.enum(['teleop', 'expert', 'act', 'molmo']).catch('act'),
   run: flag(false),
   cams: flag(true), // live camera panes; recording/eval pass cams=0 for speed
-  cams3: flag(false), // record/stream the 3-cam set (wrist+front+side) for Model C
+  cams3: flag(false), // record/stream the 3-cam set (wrist+front+side) for ACT
   molmo: z.string().optional(), // Molmo inference endpoint override
 });
 

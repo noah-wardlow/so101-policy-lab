@@ -1,14 +1,13 @@
 /**
- * The ACT models exposed in the HUD for comparison. Each has its own ONNX +
- * manifest under public/models/<id>/ and declares which cameras it consumes
- * (must match its policy.json image inputs). One `BrowserActPolicy` component is
- * mounted per selected model, keyed by id, so switching fully remounts it
- * (fresh ONNX session + camera streams).
+ * The ACT models exposed in the HUD. Each has its own ONNX + manifest under
+ * public/models/<id>/ and declares which cameras it consumes (must match its
+ * policy.json image inputs). One `BrowserActPolicy` component is mounted per
+ * selected model, keyed by id, so switching fully remounts it (fresh ONNX
+ * session + camera streams).
  *
- *   A — scripted-expert demos, wrist+front
- *   C — scripted-expert demos, wrist+front+side (3-cam ablation)
+ *   act — scripted-expert demos, wrist+front+side (3-cam)
  */
-export type ActModelId = 'act-a' | 'act-c';
+export type ActModelId = 'act';
 
 export interface ActModelDef {
   id: ActModelId;
@@ -25,16 +24,10 @@ const MODEL_BASE = import.meta.env.VITE_MODEL_BASE ?? '/models';
 const manifest = (id: ActModelId) => `${MODEL_BASE}/${id}/policy.json`;
 
 export const ACT_MODELS: Record<ActModelId, ActModelDef> = {
-  'act-a': {
-    id: 'act-a',
-    label: 'ACT-A · 2-cam (wrist+front)',
-    manifestUrl: manifest('act-a'),
-    cameraKeys: ['wrist', 'front'],
-  },
-  'act-c': {
-    id: 'act-c',
-    label: 'ACT-C · 3-cam (wrist+front+side)',
-    manifestUrl: manifest('act-c'),
+  act: {
+    id: 'act',
+    label: 'ACT · 3-cam (wrist+front+side)',
+    manifestUrl: manifest('act'),
     cameraKeys: ['wrist', 'front', 'side'],
   },
 };

@@ -187,6 +187,11 @@ export const ScriptedExpert = forwardRef<ExpertHandle, { ik: IkContextValue | nu
     };
 
     const runEpisode = async (): Promise<EpisodeMetrics> => {
+      // Re-entrancy guard: starting a second episode while one is in flight spawns
+      // a concurrent control loop fighting the first over the arm/gripper — that
+      // stacks per-tick work (FPS decays), drives errant "swiping", and can only be
+      // cleared by a page refresh. Ignore the call instead.
+      if (activeRef.current) return FAIL;
       const cube = readCubePos();
       if (!cube) return FAIL;
       activeRef.current = true;

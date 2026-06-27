@@ -9,9 +9,7 @@ Two policy backends, selectable in the HUD:
 
 - **Browser ACT** — a LeRobot ACT policy trained on scripted demonstrations,
   exported to ONNX, run **client-side** with `onnxruntime-web`. No backend → the
-  app is a static site. Two models ship for comparison: **ACT-A** (wrist + front
-  cameras) and **ACT-C** (wrist + front + side), trained on the *same*
-  demonstrations so the only variable is the extra camera.
+  app is a static site. Uses three cameras (wrist + front + side).
 - **MolmoAct2** — AllenAI's `MolmoAct2-SO100_101` vision-language-action model,
   LoRA-fine-tuned on the same data, served on a GPU and called over HTTP (set
   `VITE_MOLMO_ENDPOINT` or enter the URL in the HUD).
@@ -34,7 +32,7 @@ MujocoProvider → MujocoCanvas (sim) → the selected policy drives ctrl each s
 - **`src/controllers/PolicyAutoFinish.tsx`** — pauses the sim once the cube is
   placed, so an out-of-distribution policy can't nudge it afterward.
 
-Search params (zod-validated, `src/router.tsx`): `?mode=act-a|act-c|molmo|expert|teleop`,
+Search params (zod-validated, `src/router.tsx`): `?mode=act|molmo|expert|teleop`,
 `?run=1`, `?cams=0`, `?molmo=<url>`.
 
 ## Develop
@@ -59,7 +57,7 @@ python scripts/build_lerobot_dataset.py --raw data/raw --root data/lerobot --ove
 
 # 3. Train ACT (CUDA / Mac MPS / CPU auto-detected) → export ONNX:
 bash scripts/train_act.sh
-python scripts/export_act_to_onnx.py --policy <checkpoint> --out public/models/act-a
+python scripts/export_act_to_onnx.py --policy <checkpoint> --out public/models/act
 ```
 
 Reload the app — `BrowserActPolicy` loads `public/models/<id>/policy.json`.
@@ -74,7 +72,7 @@ The client is static — host it on Cloudflare Pages (or any static host):
   COOP/COEP headers are set in production (threaded WASM needs them).
 - **ONNX models** → object storage (Cloudflare R2 / S3 / a CDN). Each ACT model
   is ~137MB, over Pages' 25 MiB-per-file limit, so they can't be Pages assets.
-  Set `VITE_MODEL_BASE=<bucket-url>` and the app loads `<base>/act-a/policy.json`.
+  Set `VITE_MODEL_BASE=<bucket-url>` and the app loads `<base>/act/policy.json`.
 - **MolmoAct2 server** (`server/`) → a GPU host (RunPod). It is Python + a 5B
   model, so it never runs on Cloudflare; the browser just calls its URL. Molmo is
   optional — ACT works with no backend at all.
