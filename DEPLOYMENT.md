@@ -1,4 +1,30 @@
-# Live deployment (RunPod)
+# Live deployment
+
+## Web app — Cloudflare Workers + R2
+Live: **https://so101-policy-lab.nmwardlow.workers.dev**
+
+A single Worker (`worker.js` + `wrangler.jsonc`) serves the static build from
+Workers Assets and the ~137 MB ACT ONNX from R2 — **same origin**, so the
+cross-origin-isolation headers (`public/_headers` → COOP/COEP, needed for
+threaded WASM) hold without any CORS/CORP juggling. The ONNX is too big for a
+static asset (25 MiB/file limit), hence R2 + the fetch handler in `worker.js`.
+
+Deploy from scratch:
+```bash
+npm run build                                              # → dist/ (incl. 137MB onnx)
+wrangler r2 bucket create so101-policy-lab                 # once
+wrangler r2 object put so101-policy-lab/act/act.onnx \
+  --file dist/models/act/act.onnx \
+  --content-type application/octet-stream --remote         # upload model to R2
+rm dist/models/act/act.onnx                                # keep it out of Assets (>25MiB)
+wrangler deploy                                            # ship Worker + assets
+```
+Re-deploy after a code change is just `npm run build && rm
+dist/models/act/act.onnx && wrangler deploy` (the model only needs re-uploading
+when it changes). `VITE_MODEL_BASE` is unset — everything is same-origin under
+`/models/act/`.
+
+# RunPod (Molmo / training)
 
 ## Pod
 - `<POD_ID>` — NVIDIA A40 (48GB), SECURE, CA-MTL-1

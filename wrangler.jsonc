@@ -1,0 +1,14 @@
+{
+  // Cloudflare Worker that serves the static app (dist/) plus the ~137 MB ACT
+  // ONNX from R2 — same origin, so cross-origin isolation (COOP/COEP from
+  // dist/_headers) holds without any CORS/CORP juggling. The ONNX is too big for
+  // a static asset (25 MiB/file limit), hence the R2 binding + fetch handler.
+  "name": "so101-policy-lab",
+  "main": "worker.js",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "r2_buckets": [{ "binding": "MODELS", "bucket_name": "so101-policy-lab" }]
+}
