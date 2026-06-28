@@ -224,7 +224,8 @@ export function App() {
   // when recording the 3-cam dataset (?cams3=1).
   const activeCameras: So101CameraDef[] = useMemo(() => {
     if (isActModel(mode)) return camerasForKeys(ACT_MODELS[mode].cameraKeys);
-    if (mode === 'molmo') return SO101_CAMERAS_3; // Molmo consumes wrist+front+side
+    // Molmo uses MolmoAct2's pretrained 2-camera config (wrist+front); a 3rd view
+    // regressed it. So it shares the default 2-cam panel below.
     return search.cams3 ? SO101_CAMERAS_3 : SO101_CAMERAS;
   }, [mode, search.cams3]);
   const camRefs = useMemo(

@@ -3,7 +3,7 @@ import { useRemotePolicy, useMujoco, applyPolicyActionToControls } from 'mujoco-
 import type { CameraFrameCaptureSession, RemotePolicyConfig } from 'mujoco-react';
 import {
   SO101_NUM_ACTUATORS,
-  SO101_CAMERAS_3,
+  SO101_CAMERAS,
   CAM_RENDER_ISOLATION,
   simToPolicyDegrees,
   policyDegreesToSim,
@@ -14,9 +14,9 @@ import {
  * Browser client for the FINE-TUNED MolmoAct2 server (server/molmo_ft_server.py).
  *
  * Because the model was LoRA fine-tuned on our own SO-101 sim data, it speaks our
- * convention directly: state/action are sim-joint DEGREES, cameras are the same
- * `wrist`+`front`+`side` (3-cam) views we recorded. So the transform here is
- * IDENTITY — just
+ * convention directly: state/action are sim-joint DEGREES, cameras are the
+ * `wrist`+`front` views (MolmoAct2's pretrained 2-camera config — adding a 3rd
+ * view regressed it). So the transform here is IDENTITY — just
  * degrees<->radians (simToPolicyDegrees / policyDegreesToSim), no sign flips or
  * hand-tuned offsets.
  */
@@ -38,7 +38,7 @@ export function MolmoPolicy({
     if (!api) return {};
     if (!sessionsRef.current) {
       const s: Record<string, CameraFrameCaptureSession> = {};
-      for (const c of SO101_CAMERAS_3) {
+      for (const c of SO101_CAMERAS) {
         s[c.key] = api.createCameraFrameCaptureSession({
           width: c.width,
           height: c.height,
@@ -57,7 +57,7 @@ export function MolmoPolicy({
       sessionsRef.current = s;
     }
     const images: Record<string, string> = {};
-    for (const c of SO101_CAMERAS_3) images[c.key] = sessionsRef.current[c.key].captureDataUrl().dataUrl;
+    for (const c of SO101_CAMERAS) images[c.key] = sessionsRef.current[c.key].captureDataUrl().dataUrl;
     return images;
   };
 
