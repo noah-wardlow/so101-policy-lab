@@ -22,5 +22,7 @@ PIP=(uv pip install --python /workspace/venv/bin/python)
 "${PIP[@]}" "lerobot[molmoact2,dataset] @ git+https://github.com/huggingface/lerobot.git@536b962"
 # ONNX export deps (used by export_act_to_onnx.py; harmless for Molmo-only runs).
 "${PIP[@]}" onnx onnxruntime
+# Inference-server deps (server/molmo_ft_server.py serves the fine-tuned Molmo).
+"${PIP[@]}" fastapi "uvicorn[standard]" pillow python-multipart
 echo "[setup] DONE -> /workspace/venv/bin/lerobot-train"
 venv/bin/lerobot-train --help >/dev/null 2>&1 && echo "[setup] lerobot-train OK" || echo "[setup] WARN: lerobot-train smoke failed"

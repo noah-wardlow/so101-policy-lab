@@ -18,6 +18,33 @@ Two policy backends, selectable in the HUD:
   LoRA-fine-tuned on the same data, served on a GPU and called over HTTP (set
   `VITE_MOLMO_ENDPOINT` or enter the URL in the HUD).
 
+For this task, **ACT clearly wins** — it grasps reliably (~7/8) and runs free in
+the browser. The fine-tuned Molmo is included as a comparison and is, honestly,
+the weaker option here (see below).
+
+### Molmo: status, limitations, next steps
+
+A light LoRA fine-tune (4,000 steps, 101 sim episodes, loss → 0.087) of a 5B
+general VLA does **not** match the task-specific ACT on precise grasping:
+
+- **Twitchy, low grasp rate.** The action *scale* is correct (the server
+  denormalizes with the policy's own `norm_tag` post-processor, so degrees round
+  trip), so this is under-adaptation, not a wiring bug — a generalist nudged
+  toward the task vs a small network trained end-to-end on it.
+- **Slow + bursty by construction.** ~3s/inference over the network, run
+  receding-horizon (infer a chunk → replay → replace), so the arm moves in
+  stop-start bursts. No client change removes this; it's inherent to a big
+  remote VLA.
+
+To make Molmo competitive (in rough priority order):
+1. **Train much longer / more data** — 4k steps is light; try 15–30k steps and a
+   larger, more varied dataset (more cube positions, distractors).
+2. **Tune the receding-horizon** — match the replay frequency to the dataset rate
+   and the inference latency to cut the burstiness (`MolmoPolicy` config).
+3. **Quantize / host closer** to cut the ~3s latency, or run a smaller VLA.
+4. Consider whether a VLA is even the right tool here — its payoff is *language
+   generalization* across tasks, which this single fixed task doesn't exercise.
+
 ## How it works
 
 ```

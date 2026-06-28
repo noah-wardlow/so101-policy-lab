@@ -8,8 +8,12 @@ STEPS="${STEPS:-4000}"
 BATCH="${BATCH:-4}"
 OUT="${OUT:-/workspace/molmo_ft}"
 DATASET_ROOT="${DATASET_ROOT:-/workspace/data/lerobot}"
+# Each MolmoAct2 checkpoint is ~14GB. On a 60GB no-volume pod, saving more than
+# once fills the disk and the safetensors write fails ("No space left on device").
+# Default to saving ONLY at the end; override SAVE_FREQ if the disk has headroom.
+SAVE_FREQ="${SAVE_FREQ:-$STEPS}"
 
-echo "[molmo-ft] steps=$STEPS batch=$BATCH out=$OUT dataset=$DATASET_ROOT"
+echo "[molmo-ft] steps=$STEPS batch=$BATCH out=$OUT dataset=$DATASET_ROOT save_freq=$SAVE_FREQ"
 "$VENV/bin/lerobot-train" \
   --dataset.repo_id=local/so101-pickplace \
   --dataset.root="$DATASET_ROOT" \
@@ -28,6 +32,6 @@ echo "[molmo-ft] steps=$STEPS batch=$BATCH out=$OUT dataset=$DATASET_ROOT"
   --job_name=so101_molmo_ft \
   --steps="$STEPS" \
   --batch_size="$BATCH" \
-  --save_freq=2000 \
+  --save_freq="$SAVE_FREQ" \
   --wandb.enable=false
 echo "[molmo-ft] DONE -> $OUT/checkpoints/last/pretrained_model"
